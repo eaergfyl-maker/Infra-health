@@ -1,0 +1,13 @@
+{
+  "person": "B",
+  "hostname": "localhost.localdomain",
+  "generated_at": "2026-09-06T13:57:41+08:00",
+  "checks": [
+    {"category": "Resource Health", "check": "Disk usage under control", "points": 10, "max_points": 10, "reason": "/ is 36% full"},
+    {"category": "Resource Health", "check": "Memory usage under control", "points": 8, "max_points": 8, "reason": "26% of memory in use"},
+    {"category": "Resource Health", "check": "CPU load under control", "points": 7, "max_points": 7, "reason": "Load 0.21 across 4 cores (5%)"},
+    {"category": "Maintenance", "check": "Packages up to date", "points": 0, "max_points": 10, "reason": "215 packages can be updated - system is well behind"},
+    {"category": "Maintenance", "check": "No stale log files", "points": 8, "max_points": 8, "reason": "No log files older than 30 days"},
+    {"category": "Maintenance", "check": "No zombie processes", "points": 7, "max_points": 7, "reason": "No zombie processes"}
+  ]
+}

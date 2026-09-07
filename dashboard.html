@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Server Health Score</title>
+
+<!-- total_health.js is written by aggregator.py. Loading it as a script
+     (instead of reading the .json) is what lets this page work when you
+     just double-click it. If the file isn't there yet, we ignore it. -->
+<script src="total_health.js" onerror="window.HEALTH_JS_MISSING = true;"></script>
+
+<style>
+  :root {
+    --void:  #16181f;
+    --plate: #1e212b;
+    --edge:  #303646;
+    --text:  #e9ecf3;
+    --dim:   #8d95a8;
+    --empty: #2b3040;
+
+    --good:  #58d6a2;
+    --warn:  #f0a93c;
+    --bad:   #e4574c;
+
+    --rank-s: #f5c542;
+    --rank-a: #58d6a2;
+    --rank-b: #56a5f0;
+    --rank-c: #f08a3c;
+    --rank-d: #e4574c;
+
+    --sans: "Liberation Sans", "DejaVu Sans", ui-sans-serif, system-ui, Arial, sans-serif;
+    --mono: "Liberation Mono", "DejaVu Sans Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 28px 20px 60px;
+    background: var(--void);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .sheet {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* ---------- top strip ---------- */
+  .strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--edge);
+  }
+  .host { font-size: 19px; font-weight: 600; letter-spacing: .2px; }
+  .stamp { color: var(--dim); font-size: 13px; }
+
+  /* ---------- hero: rank badge + health bar ---------- */
+  .hero {
+    display: flex;
+    gap: 26px;
+    align-items: center;
+    padding: 30px 0 26px;
+    border-bottom: 1px solid var(--edge);
+  }
+
+  .badge {
+    flex: none;
+    width: 108px;
+    height: 108px;
+    border-radius: 6px;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    background: var(--plate);
+    border: 2px solid var(--edge);
+  }
+  .badge .letter {
+    font-size: 62px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .badge .word {
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 1.4px;
+    margin-top: 6px;
+  }
+
+  .gauge { flex: 1 1 auto; min-width: 0; }
+
+  .gauge .numbers {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .gauge .score {
+    font-family: var(--mono);
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .gauge .outof { color: var(--dim); font-size: 17px; }
+
+  /* the health bar: 20 segments, one per 5 points */
+  .segments { display: flex; gap: 3px; height: 26px; }
+  .seg {
+    flex: 1;
+    background: var(--empty);
+    border-radius: 2px;
+    transform-origin: bottom;
+  }
+  .seg.on { background: var(--barcolor); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .seg.on { animation: pop .28s ease-out backwards; }
+    @keyframes pop {
+      from { transform: scaleY(.15); opacity: .2; }
+      to   { transform: scaleY(1);   opacity: 1; }
+    }
+  }
+
+  .caption { color: var(--dim); font-size: 13px; margin-top: 10px; }
+
+  /* ---------- category rows ---------- */
+  h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dim);
+    margin: 28px 0 4px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--edge);
+  }
+  .row .label { flex: 0 0 150px; font-weight: 500; }
+  .row .mini { flex: 1 1 auto; display: flex; gap: 2px; height: 12px; min-width: 90px; }
+  .row .mini span { flex: 1; background: var(--empty); border-radius: 1px; }
+  .row .pts {
+    flex: 0 0 74px;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- lost points ---------- */
+  .loss {
+    display: flex;
+    gap: 14px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--edge);
+    align-items: baseline;
+  }
+  .loss .cost {
+    flex: 0 0 44px;
+    font-family: var(--mono);
+    font-weight: 700;
+    color: var(--bad);
+    text-align: right;
+  }
+  .loss .what { font-weight: 500; }
+  .loss .why { color: var(--dim); font-size: 14px; }
+
+  .clear { color: var(--good); padding: 14px 0; }
+
+  /* ---------- empty state ---------- */
+  .empty {
+    border: 1px dashed var(--edge);
+    border-radius: 6px;
+    padding: 34px 26px;
+    margin-top: 30px;
+  }
+  .empty h3 { margin: 0 0 8px; font-size: 17px; }
+  .empty p { margin: 0 0 6px; color: var(--dim); }
+  code {
+    font-family: var(--mono);
+    background: var(--plate);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+
+  /* ---------- buttons ---------- */
+  .tools { display: flex; gap: 10px; margin-top: 22px; }
+  .btn {
+    font: inherit;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--plate);
+    border: 1px solid var(--edge);
+    border-radius: 4px;
+    padding: 7px 13px;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--dim); }
+  .btn:focus-visible { outline: 2px solid var(--rank-b); outline-offset: 2px; }
+  #picker { display: none; }
+
+  @media (max-width: 560px) {
+    .hero { flex-direction: column; align-items: flex-start; gap: 18px; }
+    .row { flex-wrap: wrap; }
+    .row .label { flex-basis: 100%; }
+  }
+</style>
+</head>
+
+<body>
+<div class="sheet" id="sheet">
+  <div class="strip">
+    <div class="host" id="host">Server health score</div>
+    <div class="stamp" id="stamp">waiting for data</div>
+  </div>
+  <div id="body"></div>
+
+  <div class="tools">
+    <button class="btn" onclick="location.reload()">Refresh</button>
+    <button class="btn" onclick="document.getElementById('picker').click()">Load a JSON file</button>
+    <input type="file" id="picker" accept=".json">
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// 1. Getting the data
+//    Try to fetch total_health.json (works when the page is served
+//    over http). If that is blocked, use window.HEALTH_DATA which
+//    comes from total_health.js. If neither exists, show help text.
+// ---------------------------------------------------------------
+
+var servedOverHttp = false;
+
+function loadData(done) {
+  fetch('total_health.json?t=' + Date.now())
+    .then(function (res) { return res.ok ? res.json() : Promise.reject(); })
+    .then(function (data) { servedOverHttp = true; done(data); })
+    .catch(function () { done(window.HEALTH_DATA || null); });
+}
+
+// ---------------------------------------------------------------
+// 2. Small helpers
+// ---------------------------------------------------------------
+
+function healthColor(percent) {
+  if (percent >= 80) return 'var(--good)';
+  if (percent >= 60) return 'var(--warn)';
+  return 'var(--bad)';
+}
+
+function rankColor(rank) {
+  return {
+    S: 'var(--rank-s)', A: 'var(--rank-a)', B: 'var(--rank-b)',
+    C: 'var(--rank-c)', D: 'var(--rank-d)'
+  }[rank] || 'var(--dim)';
+}
+
+function rankWord(rank) {
+  return {
+    S: 'flawless', A: 'healthy', B: 'stable',
+    C: 'needs work', D: 'critical'
+  }[rank] || '';
+}
+
+function esc(text) {
+  return String(text)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ---------------------------------------------------------------
+// 3. Drawing the page
+// ---------------------------------------------------------------
+
+function render(data) {
+  var body = document.getElementById('body');
+
+  if (!data) {
+    document.getElementById('stamp').textContent = 'no data yet';
+    body.innerHTML =
+      '<div class="empty">' +
+        '<h3>No score to show yet</h3>' +
+        '<p>Run the checks, then come back and press Refresh:</p>' +
+        '<p><code>sudo ./health_checks_a.sh</code></p>' +
+        '<p><code>sudo ./health_checks_b.sh</code></p>' +
+        '<p><code>python3 aggregator.py</code></p>' +
+        '<p>Or press "Load a JSON file" and pick total_health.json.</p>' +
+      '</div>';
+    return;
+  }
+
+  document.getElementById('host').textContent = data.hostname;
+  document.getElementById('stamp').textContent = 'checked ' + data.generated_at;
+
+  var color = healthColor(data.score);
+  var filled = Math.round(data.score / 5);   // 20 segments, 5 points each
+
+  var html = '';
+
+  // --- hero ---
+  html += '<div class="hero">';
+  html +=   '<div class="badge" style="border-color:' + rankColor(data.rank) + '">';
+  html +=     '<div class="letter" style="color:' + rankColor(data.rank) + '">' + esc(data.rank) + '</div>';
+  html +=     '<div class="word">' + rankWord(data.rank) + '</div>';
+  html +=   '</div>';
+  html +=   '<div class="gauge">';
+  html +=     '<div class="numbers"><span class="score" style="color:' + color + '">' + data.score + '</span>';
+  html +=     '<span class="outof">of 100</span></div>';
+  html +=     '<div class="segments" style="--barcolor:' + color + '">';
+  for (var i = 0; i < 20; i++) {
+    html += '<div class="seg' + (i < filled ? ' on' : '') +
+            '" style="animation-delay:' + (i * 22) + 'ms"></div>';
+  }
+  html +=     '</div>';
+  html +=     '<div class="caption">' + data.points_earned + ' of ' + data.points_possible +
+              ' points earned across ' + data.checks.length + ' checks</div>';
+  html +=   '</div>';
+  html += '</div>';
+
+  // --- categories ---
+  html += '<h2>By category</h2>';
+  Object.keys(data.categories).sort().forEach(function (name) {
+    var cat = data.categories[name];
+    var catColor = healthColor(cat.percent);
+    var lit = Math.round(cat.percent / 10);
+    html += '<div class="row">';
+    html +=   '<div class="label">' + esc(name) + '</div>';
+    html +=   '<div class="mini">';
+    for (var j = 0; j < 10; j++) {
+      html += '<span' + (j < lit ? ' style="background:' + catColor + '"' : '') + '></span>';
+    }
+    html +=   '</div>';
+    html +=   '<div class="pts">' + cat.points + ' / ' + cat.max_points + '</div>';
+    html += '</div>';
+  });
+
+  // --- where the points went ---
+  html += '<h2>Where the points went</h2>';
+  if (data.lost_points.length === 0) {
+    html += '<div class="clear">Every check passed. Nothing to fix.</div>';
+  } else {
+    data.lost_points.forEach(function (item) {
+      html += '<div class="loss">';
+      html +=   '<div class="cost">-' + item.lost + '</div>';
+      html +=   '<div><div class="what">' + esc(item.check) + '</div>';
+      html +=   '<div class="why">' + esc(item.reason) + '</div></div>';
+      html += '</div>';
+    });
+  }
+
+  body.innerHTML = html;
+}
+
+// ---------------------------------------------------------------
+// 4. Start up
+// ---------------------------------------------------------------
+
+loadData(function (data) {
+  render(data);
+  // If the page is being served over http, refresh by itself every
+  // 5 seconds so the demo updates live while you sabotage things.
+  if (servedOverHttp) {
+    setInterval(function () { loadData(render); }, 5000);
+  }
+});
+
+// Manual file loading, for when you open the page from a USB stick
+// or a different folder than the JSON.
+document.getElementById('picker').addEventListener('change', function (event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function () { render(JSON.parse(reader.result)); };
+  reader.readAsText(file);
+});
+</script>
+</body>
+</html>

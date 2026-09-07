@@ -1,0 +1,124 @@
+window.HEALTH_DATA = {
+  "hostname": "localhost.localdomain",
+  "generated_at": "2026-09-06 13:57:41",
+  "score": 85,
+  "max_score": 100,
+  "points_earned": 85,
+  "points_possible": 100,
+  "rank": "A",
+  "categories": {
+    "Security": {
+      "points": 20,
+      "max_points": 25,
+      "percent": 80
+    },
+    "Reliability": {
+      "points": 25,
+      "max_points": 25,
+      "percent": 100
+    },
+    "Resource Health": {
+      "points": 25,
+      "max_points": 25,
+      "percent": 100
+    },
+    "Maintenance": {
+      "points": 15,
+      "max_points": 25,
+      "percent": 60
+    }
+  },
+  "checks": [
+    {
+      "category": "Security",
+      "check": "SSH root login disabled",
+      "points": 10,
+      "max_points": 10,
+      "reason": "PermitRootLogin is set to no"
+    },
+    {
+      "category": "Security",
+      "check": "Firewall active",
+      "points": 10,
+      "max_points": 10,
+      "reason": "firewalld is running"
+    },
+    {
+      "category": "Security",
+      "check": "No recent failed logins",
+      "points": 0,
+      "max_points": 5,
+      "reason": "16 failed login attempts found - possible brute force"
+    },
+    {
+      "category": "Reliability",
+      "check": "Service demoweb is running",
+      "points": 15,
+      "max_points": 15,
+      "reason": "demoweb is active"
+    },
+    {
+      "category": "Reliability",
+      "check": "Recent backup exists",
+      "points": 10,
+      "max_points": 10,
+      "reason": "1 backup file(s) from the last 24 hours"
+    },
+    {
+      "category": "Resource Health",
+      "check": "Disk usage under control",
+      "points": 10,
+      "max_points": 10,
+      "reason": "/ is 36% full"
+    },
+    {
+      "category": "Resource Health",
+      "check": "Memory usage under control",
+      "points": 8,
+      "max_points": 8,
+      "reason": "26% of memory in use"
+    },
+    {
+      "category": "Resource Health",
+      "check": "CPU load under control",
+      "points": 7,
+      "max_points": 7,
+      "reason": "Load 0.21 across 4 cores (5%)"
+    },
+    {
+      "category": "Maintenance",
+      "check": "Packages up to date",
+      "points": 0,
+      "max_points": 10,
+      "reason": "215 packages can be updated - system is well behind"
+    },
+    {
+      "category": "Maintenance",
+      "check": "No stale log files",
+      "points": 8,
+      "max_points": 8,
+      "reason": "No log files older than 30 days"
+    },
+    {
+      "category": "Maintenance",
+      "check": "No zombie processes",
+      "points": 7,
+      "max_points": 7,
+      "reason": "No zombie processes"
+    }
+  ],
+  "lost_points": [
+    {
+      "category": "Maintenance",
+      "check": "Packages up to date",
+      "lost": 10,
+      "reason": "215 packages can be updated - system is well behind"
+    },
+    {
+      "category": "Security",
+      "check": "No recent failed logins",
+      "lost": 5,
+      "reason": "16 failed login attempts found - possible brute force"
+    }
+  ]
+};
