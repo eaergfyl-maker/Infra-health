@@ -1,11 +1,15 @@
 # Infrastructure Health Score Dashboard
 
 A Linux server health checker that scores your machine out of 100 and gives it a
-video-game-style rank — S, A, B, C, or D — based on real checks across security,
+video-game-style rank — S, A, B, C, or D, based on real checks across security,
 reliability, resource usage, and maintenance hygiene.
 
+
 Built in a 3-hour hackathon by 3 beginners, on Rocky Linux, with nothing but
-bash, Python, and static HTML. No database, no Docker, no frameworks.
+bash, Python, and static HTML. No database, no Docker, no frameworks. 
+
+**Team ICEMAN** : Abdul Rahman Bin Rahmatullah, Jayden Tan Jin Wei, Eashwar Singh Sidhu -
+Built at the APU Red Hat Academy Hackathon
 
 ![Rank S example](https://img.shields.io/badge/rank-S-brightgreen)
 ![Bash](https://img.shields.io/badge/bash-checks-blue)
@@ -32,7 +36,7 @@ It checks 11 things across 4 categories:
 Score 90+ is rank **S**. Below 60 is rank **D**.
 
 The project also ships three safe "sabotage" scripts that intentionally break
-things — fill a disk, stop a service, fake some failed logins — so you can
+things. Fill a disk, stop a service, fake some failed logins, so you can
 watch the score drop and recover live.
 
 ---
@@ -159,7 +163,7 @@ sudo ./run_all.sh          # watch it recover
 This was built to a specific constraint: 3 beginners, 3 laptops, 3 hours. Every
 dependency is something that can fail to install, need configuring, or cause a
 merge conflict between teammates working at the same time. Bash, Python's
-standard library, and one HTML file need none of that — anyone can clone this
+standard library, and one HTML file need none of that, anyone can clone this
 repo and see it working with two commands and a browser.
 
 ---
@@ -167,3 +171,7 @@ repo and see it working with two commands and a browser.
 ## License
 
 Built for a hackathon. Use it, fork it, adapt it.
+
+## Team 
+
+Built by team ICEMAN at
