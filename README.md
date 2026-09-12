@@ -171,7 +171,3 @@ repo and see it working with two commands and a browser.
 ## License
 
 Built for a hackathon. Use it, fork it, adapt it.
-
-## Team 
-
-Built by team ICEMAN at
